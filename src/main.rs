@@ -17,12 +17,12 @@ fn main() {
 fn draw_sudoku(board: &[u8; 81]) {
     println!("+-----------------------------+");
     for (i, &val) in board.iter().enumerate() {
-        let line_start = if i % 9 == 0 { "|" } else { "" };
+        let cell_separator_left = if i % 9 == 0 { "|" } else { "" };
         let cell_value = if val == 0 { String::from(" ") } else { val.to_string() };
-        let cell_separator = if i % 3 == 2 { "|" } else { "" };
+        let cell_separator_right = if i % 3 == 2 { "|" } else { "" };
         let line_end = if i % 9 == 8 { "\n" } else { "" };
         
-        print!("{} {} {}{}", line_start, cell_value, cell_separator, line_end);
+        print!("{} {} {}{}", cell_separator_left, cell_value, cell_separator_right, line_end);
         
         if i % 27 == 26 && i < 80 {
             println!("|---------+---------+---------|");
