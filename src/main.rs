@@ -1,5 +1,6 @@
 use std::collections::HashSet;
 use std::time::Instant;
+use std::fs;
 
 struct Sudoku {
     // 2D 9x9 matrix of the sudoku board.
@@ -14,7 +15,7 @@ struct Sudoku {
 }
 
 fn main() {
-    let mut sudoku: Sudoku = Sudoku::new_easy();
+    let mut sudoku: Sudoku = Sudoku::load("boards/easy1.sdku");
 
     sudoku.draw();
 
@@ -96,24 +97,6 @@ impl Sudoku {
         }
     }
 
-    fn new_easy() -> Self {
-        // TEMPORARY: Returns an easy to solve Sudoku
-        Self {
-            board: [
-                [0, 3, 4, 6, 7, 8, 9, 1, 2], // 5
-                [6, 7, 2, 1, 9, 5, 3, 4, 8],
-                [1, 9, 8, 3, 4, 2, 5, 6, 7],
-                [8, 5, 9, 7, 0, 1, 4, 2, 3],
-                [4, 2, 6, 8, 5, 3, 7, 9, 1],
-                [7, 0, 3, 9, 2, 4, 0, 5, 6], // 8
-                [9, 6, 1, 5, 3, 7, 2, 8, 4],
-                [2, 0, 7, 4, 1, 9, 6, 3, 5],
-                [3, 4, 5, 2, 8, 0, 1, 7, 9], // 6
-            ],
-            blacklist: [[[0u8; 9]; 9]; 9],
-        }
-    }
-
     fn draw(&self) {
         // Print the Sudoku in a readable manner
         println!("+-----------------------------+");
@@ -182,10 +165,27 @@ impl Sudoku {
         true
     }
 
-    fn load(path: String) -> Self {
+    fn load(path: &str) -> Self {
         // Load a sudoku from a file and return a Sudoku struct
+        let contents = fs::read_to_string(path)
+            .expect("Should have been able to read the file");
+
+        let contents: String = contents.replace("\n", "");
+        let contents: String = contents.replace("\r", "");
+        let contents: String = contents.replace(" ", "");
+
+        let cell_numbers_as_str: Vec<&str> = contents.split(",").collect();
+        let mut board: [[u8; 9]; 9] = [[0u8; 9]; 9];
+        for i in 0..9 {
+            for j in 0..9 {
+                let as_str: &str = cell_numbers_as_str[j + 9 * i];
+                let as_int: u8 = as_str.parse().unwrap();
+                board[i][j] = as_int;
+            }
+        }
+
         Self {
-            board: [[0u8; 9]; 9],
+            board: board,
             blacklist: [[[0u8; 9]; 9]; 9],
         }
     }
