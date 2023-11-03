@@ -1,13 +1,16 @@
 use std::collections::HashSet;
-use std::time::{Duration, Instant};
+use std::time::Instant;
 
 struct Sudoku {
-    // Flat list of the sudoku board.
+    // 2D 9x9 matrix of the sudoku board.
     board: [[u8; 9]; 9],
-    // Create a blacklist of every number that can't be placed on its specific index.
-    // This is a 2D Array where for eg. the first array is the list of numbers that can't be
-    // placed in the first cell of the input.
-    blacklist: [[u8; 9]; 81],
+    // Create a blacklist of every number that can't be placed on a specific cell.
+    // This is a 3D 9x9x9 matrix where the first 2 indices define the cell and the last
+    // index returns 0 if the number could be placed on that cell or a number, if that number
+    // can't be placed on that cell. Eg: blacklist[0][0] may return [1, 2, 3, 4, 0, 6, 7, 8, 9]
+    // which would tell us that every number except for the number 5 cannot be placed in that
+    // cell, thus the number 5 should be inserted in board[0][0].
+    blacklist: [[[u8; 9]; 9]; 9],
 }
 
 fn main() {
@@ -15,34 +18,81 @@ fn main() {
 
     sudoku.draw();
 
-    let correct: bool = sudoku.is_solved();
-    println!("{}", correct.to_string());
+    println!("{}", sudoku.is_solved().to_string());
 
     let start: Instant = Instant::now();
     sudoku.solve();
-    let duration: Duration = start.elapsed();
-    println!("Time elapsed to solve sudoku: {:?}", duration);
+    println!("Time elapsed to solve sudoku: {:?}", start.elapsed());
 
     sudoku.draw();
 
-    let correct: bool = sudoku.is_solved();
-    println!("{}", correct.to_string());
+    println!("{}", sudoku.is_solved().to_string());
 }
 
 impl Sudoku {
     fn solve(&mut self) {
         // Solve the Sudoku (the crux!)
-        self.blacklist[0][2] = 12;
-        //dbg!(self.blacklist);
-
         while !self.is_solved() {
+            let mut has_blacklist_changed: bool = false;
             // 1. Perform several checks to add entries to the blacklist
-            // for cell in board
-            // vertical lines check
-            // horizontal lines check
+            for i in 0..81 {
+                let row_idx: usize = i / 9;
+                let col_idx: usize = i % 9;
 
-            // 2. Fill cells of the board where the blacklist is only missing one number
-            break;
+                let val: u8 = self.board[row_idx][col_idx];
+
+                // Skip filled cells
+                if val != 0 {
+                    continue;
+                }
+
+                // Vertical check
+                let row: [u8; 9] = self.board[row_idx];
+                for num in row {
+                    // If that rows cell isn't empty and the blacklist entry for this number in this cell is empty...
+                    if num != 0 && self.blacklist[row_idx][col_idx][(num - 1) as usize] == 0 {
+                        // ...add the num to the blacklist
+                        self.blacklist[row_idx][col_idx][(num - 1) as usize] = num;
+                        has_blacklist_changed = true;
+                    }
+                }
+
+                // Horizontal check
+                let mut column: [u8; 9] = [0; 9];
+                for j in 0..9 { // Vertical index
+                    column[j] = self.board[j][col_idx];
+                }
+                for num in column {
+                    // If that columns cell isn't empty and the blacklist entry for this number in this cell is empty...
+                    if num != 0 && self.blacklist[row_idx][col_idx][(num - 1) as usize] == 0 {
+                        // ...add the num to the blacklist
+                        self.blacklist[row_idx][col_idx][(num - 1) as usize] = num;
+                        has_blacklist_changed = true;
+                    }
+                }
+            }
+
+            // 2. Check if sudoku is solvable
+            if !has_blacklist_changed {
+                println!("Sudoku is not solvable with my current checks!");
+                break;
+            }
+
+            // 3. Fill cells of the board where the blacklist is only missing one number
+            for i in 0..9 {
+                for j in 0..9 {
+                    // If we are talking about an empty cell...
+                    if self.board[i][j] == 0 {
+                        // ...check the blacklist for a possible number to insert
+                        // If the amount of 0s in that cells blacklist is 1...
+                        if self.blacklist[i][j].iter().filter(|&n| *n == 0).count() == 1 {
+                            // ...the number at that index is the only possible entry for that cell
+                            let index: usize = self.blacklist[i][j].iter().position(|&r| r == 0).unwrap();
+                            self.board[i][j] = (index + 1) as u8;
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -53,32 +103,14 @@ impl Sudoku {
                 [0, 3, 4, 6, 7, 8, 9, 1, 2], // 5
                 [6, 7, 2, 1, 9, 5, 3, 4, 8],
                 [1, 9, 8, 3, 4, 2, 5, 6, 7],
-                [8, 5, 9, 7, 6, 1, 4, 2, 3],
+                [8, 5, 9, 7, 0, 1, 4, 2, 3],
                 [4, 2, 6, 8, 5, 3, 7, 9, 1],
-                [7, 1, 3, 9, 2, 4, 0, 5, 6], // 8
+                [7, 0, 3, 9, 2, 4, 0, 5, 6], // 8
                 [9, 6, 1, 5, 3, 7, 2, 8, 4],
-                [2, 8, 7, 4, 1, 9, 6, 3, 5],
+                [2, 0, 7, 4, 1, 9, 6, 3, 5],
                 [3, 4, 5, 2, 8, 0, 1, 7, 9], // 6
             ],
-            blacklist: [[0u8; 9]; 81],
-        }
-    }
-
-    fn new_hard() -> Self {
-        // TEMPORARY: Returns a hard to solve Sudoku
-        Self {
-            board: [
-                [8, 5, 0, 0, 0, 2, 4, 0, 0],
-                [7, 2, 0, 0, 0, 0, 0, 0, 9],
-                [0, 0, 4, 0, 0, 0, 0, 0, 0],
-                [0, 0, 1, 0, 7, 0, 0, 2, 3],
-                [0, 5, 0, 0, 0, 9, 0, 0, 0],
-                [4, 0, 0, 0, 0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0, 0, 0, 8, 0],
-                [0, 0, 7, 0, 0, 1, 7, 0, 0],
-                [0, 0, 0, 3, 6, 0, 4, 0, 0],
-            ],
-            blacklist: [[0u8; 9]; 81],
+            blacklist: [[[0u8; 9]; 9]; 9],
         }
     }
 
@@ -154,7 +186,7 @@ impl Sudoku {
         // Load a sudoku from a file and return a Sudoku struct
         Self {
             board: [[0u8; 9]; 9],
-            blacklist: [[0u8; 9]; 81],
+            blacklist: [[[0u8; 9]; 9]; 9],
         }
     }
 }
