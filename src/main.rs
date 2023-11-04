@@ -15,7 +15,7 @@ struct Sudoku {
 }
 
 fn main() {
-    let mut sudoku: Sudoku = Sudoku::load("boards/easy1.sdku");
+    let mut sudoku: Sudoku = Sudoku::load("boards/medium1.sdku");
 
     sudoku.draw();
 
@@ -34,9 +34,10 @@ impl Sudoku {
     fn solve(&mut self) {
         // Solve the Sudoku (the crux!)
         while !self.is_solved() {
-            let mut has_blacklist_changed: bool = false;
+            let mut is_changed: bool = false;
+
             // 1. Perform several checks to add entries to the blacklist
-            for i in 0..81 {
+            for i in 0..81 { // Iterate over every cell
                 let row_idx: usize = i / 9;
                 let col_idx: usize = i % 9;
 
@@ -54,7 +55,7 @@ impl Sudoku {
                     if num != 0 && self.blacklist[row_idx][col_idx][(num - 1) as usize] == 0 {
                         // ...add the num to the blacklist
                         self.blacklist[row_idx][col_idx][(num - 1) as usize] = num;
-                        has_blacklist_changed = true;
+                        is_changed = true;
                     }
                 }
 
@@ -68,18 +69,30 @@ impl Sudoku {
                     if num != 0 && self.blacklist[row_idx][col_idx][(num - 1) as usize] == 0 {
                         // ...add the num to the blacklist
                         self.blacklist[row_idx][col_idx][(num - 1) as usize] = num;
-                        has_blacklist_changed = true;
+                        is_changed = true;
+                    }
+                }
+
+                // 3x3 check
+                let box_row_idx: usize = (row_idx / 3) * 3; // Row index of this 3x3 grids top left cell
+                let box_col_idx: usize = (col_idx / 3) * 3; // Column index of this 3x3 grids top left cell
+                let mut grid: [u8; 9] = [0u8; 9]; // Representation of the 3x3 grid this cell is in
+                for i in 0..3 {
+                    for j in 0..3 {
+                        grid[j + 3 * i] = self.board[box_row_idx + i][box_col_idx + j];
+                    }
+                }
+                for num in grid {
+                    // If that 3x3 grids cell isn't empty and the blacklist entry for this number in this cell is empty...
+                    if num != 0 && self.blacklist[row_idx][col_idx][(num - 1) as usize] == 0 {
+                        // ..add the num to the blacklist
+                        self.blacklist[row_idx][col_idx][(num - 1) as usize] = num;
+                        is_changed = true;
                     }
                 }
             }
 
-            // 2. Check if sudoku is solvable
-            if !has_blacklist_changed {
-                println!("Sudoku is not solvable with my current checks!");
-                break;
-            }
-
-            // 3. Fill cells of the board where the blacklist is only missing one number
+            // 2. Fill cells of the board where the blacklist is only missing one number
             for i in 0..9 {
                 for j in 0..9 {
                     // If we are talking about an empty cell...
@@ -90,9 +103,16 @@ impl Sudoku {
                             // ...the number at that index is the only possible entry for that cell
                             let index: usize = self.blacklist[i][j].iter().position(|&r| r == 0).unwrap();
                             self.board[i][j] = (index + 1) as u8;
+                            is_changed = true;
                         }
                     }
                 }
+            }
+
+            // 3. Check if a change occured
+            if !is_changed {
+                println!("Sudoku is not solvable with my current checks!");
+                break;
             }
         }
     }
@@ -111,9 +131,7 @@ impl Sudoku {
             
             if i % 27 == 26 && i < 80 {
                 println!("|---------+---------+---------|");
-            }// else if i % 9 == 8 && i < 80 {
-            //     println!("|         |         |         |");
-            // }
+            }
         }
         println!("+-----------------------------+");
     }
@@ -179,7 +197,7 @@ impl Sudoku {
         for i in 0..9 {
             for j in 0..9 {
                 let as_str: &str = cell_numbers_as_str[j + 9 * i];
-                let as_int: u8 = as_str.parse().unwrap();
+                let as_int: u8 = as_str.parse().expect("The sdku file contains non-numeric values!");
                 board[i][j] = as_int;
             }
         }
