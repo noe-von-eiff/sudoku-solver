@@ -15,7 +15,7 @@ struct Sudoku {
 }
 
 fn main() {
-    let mut sudoku: Sudoku = Sudoku::load("boards/medium1.sdku");
+    let mut sudoku: Sudoku = Sudoku::load("boards/easy1.sdku");
 
     sudoku.draw();
 
@@ -164,22 +164,23 @@ impl Sudoku {
             }
         }
 
-        // Test 3x3
-        // for i in 0..3 { // Box horizontal index
-        //     for j in 0..3 { // Box vertical index
-        //         let mut boxi: [u8; 9] = [0; 9];
-        //         for box_x in 0..3 {
-        //             for box_y in 0..3 {
-        //                 boxi[box_x * 3 + box_y] = board[(i + box_x) * 9 + (j + box_y)];
-        //             }
-        //         }
-        //         dbg!(boxi);
-        
-        //         if has_duplicates(&boxi) {
-        //             return false;
-        //         }
-        //     }
-        // }
+        // Test 3x3 grid
+        for grid_row_idx in 0..3 { // Iterrate over the grid indcies
+            for grid_col_idx in 0..3 {
+                let mut grid: [u8; 9] = [0u8; 9]; // Representation of the 3x3 grids content
+
+                for i in 0..3 { // Horizontal index
+                    for j in 0..3 { // Vertical index
+                        // Insert cell of this grid at the correct index
+                        grid[j + 3 * i] = self.board[grid_row_idx * 3 + i][grid_col_idx * 3 + j];
+                    }
+                }
+
+                if has_duplicates(&grid) {
+                    return false;
+                }
+            }
+        }
         true
     }
 
