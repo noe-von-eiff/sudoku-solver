@@ -1,6 +1,8 @@
-use std::collections::HashSet;
+use crate::utils::has_duplicates;
 use std::time::Instant;
 use std::fs;
+
+mod utils;
 
 struct Sudoku {
     // 2D 9x9 matrix of the sudoku board.
@@ -41,10 +43,8 @@ impl Sudoku {
                 let row_idx: usize = i / 9;
                 let col_idx: usize = i % 9;
 
-                let val: u8 = self.board[row_idx][col_idx];
-
                 // Skip filled cells
-                if val != 0 {
+                if self.board[row_idx][col_idx] != 0 {
                     continue;
                 }
 
@@ -282,18 +282,4 @@ impl Sudoku {
             blacklist: [[[0u8; 9]; 9]; 9],
         }
     }
-}
-
-fn has_duplicates(arr: &[u8]) -> bool {
-    // TODO Move to a util file
-    let mut set: HashSet<u8> = HashSet::new();
-
-    for &element in arr {
-        if set.contains(&element) {
-            return true; // Found a duplicate
-        }
-        set.insert(element);
-    }
-
-    false // No duplicates found
 }
