@@ -72,33 +72,35 @@ impl Sudoku {
                     }
                 }
 
-                // Fill cell with x if all other empty cells in this row have x in their blacklist
-                // +-----------------------------+                 +-----------------------------+
-                // |         |    9  7 |       6 |                 |         |    9  7 |       6 |
-                // | 5       | 2       | 1     4 |                 | 5    *9*| 2       | 1     4 |
-                // | 3       |       1 |    7    |                 | 3       |       1 |    7    |
-                // |---------+---------+---------|                 |---------+---------+---------|
-                // |    9  3 | 8  2  5 |       7 |                 |    9  3 | 8  2  5 |       7 |
-                // |         | 9  1  4 |         | ----becomes---> |         | 9  1  4 |         |
-                // | 4       | 7  3  6 | 5  9    |                 | 4       | 7  3  6 | 5  9    |
-                // |---------+---------+---------|                 |---------+---------+---------|
-                // |    4    | 1       |       9 |                 |    4    | 1       |       9 |
-                // | 8     2 |       9 |       1 |                 | 8     2 |       9 |       1 |
-                // | 9       | 6  4    |         |                 | 9       | 6  4    |         |
-                // +-----------------------------+                 +-----------------------------+
-                let possible_numbers: Vec<u8> = self.blacklist[row_idx][col_idx]
+                // Do some more complicated checks using the blacklist of a cells regions
+                let cell_whitelist: Vec<u8> = self.blacklist[row_idx][col_idx]
                     .iter()
                     .enumerate()
                     .filter(|(_, &r)| r == 0)
                     .map(|(index, _)| (index + 1) as u8)
                     .collect(); // The numbers that could be put in this cell (basically a whitelist)
 
-                for num in &possible_numbers {
+                for num in cell_whitelist {
                     let mut is_only_possible_num: bool = true; // True if this num is the only number that can be put in this cell
+
+                    // Fill cell with x if all other empty cells in this row have x in their blacklist
+                    // +-----------------------------+                 +-----------------------------+
+                    // |         |    9  7 |       6 |                 |         |    9  7 |       6 |
+                    // | 5       | 2       | 1     4 |                 | 5    *9*| 2       | 1     4 |
+                    // | 3       |       1 |    7    |                 | 3       |       1 |    7    |
+                    // |---------+---------+---------|                 |---------+---------+---------|
+                    // |    9  3 | 8  2  5 |       7 |                 |    9  3 | 8  2  5 |       7 |
+                    // |         | 9  1  4 |         | ----becomes---> |         | 9  1  4 |         |
+                    // | 4       | 7  3  6 | 5  9    |                 | 4       | 7  3  6 | 5  9    |
+                    // |---------+---------+---------|                 |---------+---------+---------|
+                    // |    4    | 1       |       9 |                 |    4    | 1       |       9 |
+                    // | 8     2 |       9 |       1 |                 | 8     2 |       9 |       1 |
+                    // | 9       | 6  4    |         |                 | 9       | 6  4    |         |
+                    // +-----------------------------+                 +-----------------------------+
                     for i in 0..9 { // Iterate through the row
                         if i != row_idx && self.board[i][col_idx] == 0 { // If we aren't on the current cell and the cell is empty
                             let temp_blacklist: [u8; 9] = self.blacklist[i][col_idx];
-                            if !temp_blacklist.contains(num) {
+                            if !temp_blacklist.contains(&num) {
                                 is_only_possible_num = false;
                                 break;
                             }
@@ -106,32 +108,29 @@ impl Sudoku {
                     }
 
                     if is_only_possible_num {
-                        self.board[row_idx][col_idx] = *num;
-                        // self.draw();
+                        self.board[row_idx][col_idx] = num;
                         continue 'cell_iter; // Can directly go to the next cell since this one is now filled
                     }
-                }
 
-                // Fill cell with x if all other empty cells in this column have x in their blacklist
-                // +-----------------------------+                 +-----------------------------+
-                // | 1       |    9  7 |       6 |                 | 1       |    9  7 |       6 |
-                // | 5     9 | 2       | 1     4 |                 | 5 *7* 9 | 2       | 1     4 |
-                // | 3       |       1 | 9  7    |                 | 3       |       1 | 9  7    |
-                // |---------+---------+---------|                 |---------+---------+---------|
-                // | 6  9  3 | 8  2  5 | 4  1  7 |                 | 6  9  3 | 8  2  5 | 4  1  7 |
-                // | 2     7 | 9  1  4 |         | ----becomes---> | 2     7 | 9  1  4 |         |
-                // | 4       | 7  3  6 | 5  9    |                 | 4       | 7  3  6 | 5  9    |
-                // |---------+---------+---------|                 |---------+---------+---------|
-                // | 7  4    | 1       |       9 |                 | 7  4    | 1       |       9 |
-                // | 8     2 |    7  9 |    4  1 |                 | 8     2 |    7  9 |    4  1 |
-                // | 9       | 6  4    | 7       |                 | 9       | 6  4    | 7       |
-                // +-----------------------------+                 +-----------------------------+
-                for num in &possible_numbers {
-                    let mut is_only_possible_num: bool = true; // True if this num is the only number that can be put in this cell
+                    // Fill cell with x if all other empty cells in this column have x in their blacklist
+                    // +-----------------------------+                 +-----------------------------+
+                    // | 1       |    9  7 |       6 |                 | 1       |    9  7 |       6 |
+                    // | 5     9 | 2       | 1     4 |                 | 5 *7* 9 | 2       | 1     4 |
+                    // | 3       |       1 | 9  7    |                 | 3       |       1 | 9  7    |
+                    // |---------+---------+---------|                 |---------+---------+---------|
+                    // | 6  9  3 | 8  2  5 | 4  1  7 |                 | 6  9  3 | 8  2  5 | 4  1  7 |
+                    // | 2     7 | 9  1  4 |         | ----becomes---> | 2     7 | 9  1  4 |         |
+                    // | 4       | 7  3  6 | 5  9    |                 | 4       | 7  3  6 | 5  9    |
+                    // |---------+---------+---------|                 |---------+---------+---------|
+                    // | 7  4    | 1       |       9 |                 | 7  4    | 1       |       9 |
+                    // | 8     2 |    7  9 |    4  1 |                 | 8     2 |    7  9 |    4  1 |
+                    // | 9       | 6  4    | 7       |                 | 9       | 6  4    | 7       |
+                    // +-----------------------------+                 +-----------------------------+
+                    is_only_possible_num = true; // Reset to true
                     for i in 0..9 { // Iterate through the column
                         if i != col_idx && self.board[row_idx][i] == 0 { // If we aren't on the current cell and the cell is empty
                             let temp_blacklist: [u8; 9] = self.blacklist[row_idx][i];
-                            if !temp_blacklist.contains(num) {
+                            if !temp_blacklist.contains(&num) {
                                 is_only_possible_num = false;
                                 break;
                             }
@@ -139,28 +138,25 @@ impl Sudoku {
                     }
 
                     if is_only_possible_num {
-                        self.board[row_idx][col_idx] = *num;
-                        // self.draw();
+                        self.board[row_idx][col_idx] = num;
                         continue 'cell_iter; // Can directly go to the next cell since this one is now filled
                     }
-                }
 
-                // Fill cell with x if all other empty cells in this 3x3 grid have x in their blacklist
-                // +-----------------------------+                 +-----------------------------+
-                // |    4  5 | 2  8    | 7  9  6 |                 |    4  5 | 2  8    | 7  9  6 |
-                // |         |       4 | 1       |                 |         |       4 | 1       |
-                // |       9 |         | 4     3 |                 |       9 |         | 4     3 |
-                // |---------+---------+---------|                 |---------+---------+---------|
-                // | 9       | 7       | 5  6    |                 | 9       | 7       | 5  6    |
-                // |    8    | 5  1    | 9  4  7 | ----becomes---> |*6* 8    | 5  1    | 9  4  7 |
-                // | 7  5    |       9 |       1 |                 | 7  5    |       9 |       1 |
-                // |---------+---------+---------|                 |---------+---------+---------|
-                // | 4     6 |         | 2       |                 | 4     6 |         | 2       |
-                // | 5  2  7 | 4       |         |                 | 5  2  7 | 4       |         |
-                // |         |    2  5 | 6  7  4 |                 |         |    2  5 | 6  7  4 |
-                // +-----------------------------+                 +-----------------------------+
-                for num in &possible_numbers {
-                    let mut is_only_possible_num: bool = true; // True if this num is the only number that can be put in this cell
+                    // Fill cell with x if all other empty cells in this 3x3 grid have x in their blacklist
+                    // +-----------------------------+                 +-----------------------------+
+                    // |    4  5 | 2  8    | 7  9  6 |                 |    4  5 | 2  8    | 7  9  6 |
+                    // |         |       4 | 1       |                 |         |       4 | 1       |
+                    // |       9 |         | 4     3 |                 |       9 |         | 4     3 |
+                    // |---------+---------+---------|                 |---------+---------+---------|
+                    // | 9       | 7       | 5  6    |                 | 9       | 7       | 5  6    |
+                    // |    8    | 5  1    | 9  4  7 | ----becomes---> |*6* 8    | 5  1    | 9  4  7 |
+                    // | 7  5    |       9 |       1 |                 | 7  5    |       9 |       1 |
+                    // |---------+---------+---------|                 |---------+---------+---------|
+                    // | 4     6 |         | 2       |                 | 4     6 |         | 2       |
+                    // | 5  2  7 | 4       |         |                 | 5  2  7 | 4       |         |
+                    // |         |    2  5 | 6  7  4 |                 |         |    2  5 | 6  7  4 |
+                    // +-----------------------------+                 +-----------------------------+
+                    is_only_possible_num = true; // Reset to true
                     'grid_iter:for i in 0..3 { // Iterate through the 3x3 grid
                         for j in 0..3 {
                             let this_row_idx: usize = box_row_idx + i;
@@ -168,16 +164,16 @@ impl Sudoku {
                             // If we aren't on the current cell and the cell is empty
                             if !(this_row_idx == row_idx && this_col_idx == col_idx) && self.board[this_row_idx][this_col_idx] == 0 {
                                 let temp_blacklist: [u8; 9] = self.blacklist[this_row_idx][this_col_idx];
-                                if !temp_blacklist.contains(num) {
+                                if !temp_blacklist.contains(&num) {
                                     is_only_possible_num = false;
                                     break 'grid_iter;
                                 }
                             }
                         }
                     }
+
                     if is_only_possible_num {
-                        self.board[row_idx][col_idx] = *num;
-                        //self.draw();
+                        self.board[row_idx][col_idx] = num;
                         continue 'cell_iter; // Can directly go to the next cell since this one is now filled
                     }
                 }
@@ -194,7 +190,6 @@ impl Sudoku {
                             // ...the number at that index is the only possible entry for that cell
                             let index: usize = self.blacklist[i][j].iter().position(|&r| r == 0).unwrap();
                             self.board[i][j] = (index + 1) as u8;
-                            // self.draw();
                             is_changed = true;
                         }
                     }
