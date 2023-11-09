@@ -20,9 +20,9 @@ impl Sudoku {
             let mut is_changed: bool = false;
 
             // 1. Perform several checks to add entries to the blacklist
-            'cell_iter:for i in 0..81 { // Iterate over every cell
-                let row_idx: usize = i / 9;
-                let col_idx: usize = i % 9;
+            'cell_iter:for i_cell in 0..81 { // Iterate over every cell
+                let row_idx: usize = i_cell / 9;
+                let col_idx: usize = i_cell % 9;
 
                 // Skip filled cells
                 if self.board[row_idx][col_idx] != 0 {
@@ -141,6 +141,43 @@ impl Sudoku {
                     if is_only_possible_num {
                         self.board[row_idx][col_idx] = *num;
                         // self.draw();
+                        continue 'cell_iter; // Can directly go to the next cell since this one is now filled
+                    }
+                }
+
+                // Fill cell with x if all other empty cells in this 3x3 grid have x in their blacklist
+                // +-----------------------------+                 +-----------------------------+
+                // |    4  5 | 2  8    | 7  9  6 |                 |    4  5 | 2  8    | 7  9  6 |
+                // |         |       4 | 1       |                 |         |       4 | 1       |
+                // |       9 |         | 4     3 |                 |       9 |         | 4     3 |
+                // |---------+---------+---------|                 |---------+---------+---------|
+                // | 9       | 7       | 5  6    |                 | 9       | 7       | 5  6    |
+                // |    8    | 5  1    | 9  4  7 | ----becomes---> |*6* 8    | 5  1    | 9  4  7 |
+                // | 7  5    |       9 |       1 |                 | 7  5    |       9 |       1 |
+                // |---------+---------+---------|                 |---------+---------+---------|
+                // | 4     6 |         | 2       |                 | 4     6 |         | 2       |
+                // | 5  2  7 | 4       |         |                 | 5  2  7 | 4       |         |
+                // |         |    2  5 | 6  7  4 |                 |         |    2  5 | 6  7  4 |
+                // +-----------------------------+                 +-----------------------------+
+                for num in &possible_numbers {
+                    let mut is_only_possible_num: bool = true; // True if this num is the only number that can be put in this cell
+                    'grid_iter:for i in 0..3 { // Iterate through the 3x3 grid
+                        for j in 0..3 {
+                            let this_row_idx: usize = box_row_idx + i;
+                            let this_col_idx: usize = box_col_idx + j;
+                            // If we aren't on the current cell and the cell is empty
+                            if !(this_row_idx == row_idx && this_col_idx == col_idx) && self.board[this_row_idx][this_col_idx] == 0 {
+                                let temp_blacklist: [u8; 9] = self.blacklist[this_row_idx][this_col_idx];
+                                if !temp_blacklist.contains(num) {
+                                    is_only_possible_num = false;
+                                    break 'grid_iter;
+                                }
+                            }
+                        }
+                    }
+                    if is_only_possible_num {
+                        self.board[row_idx][col_idx] = *num;
+                        //self.draw();
                         continue 'cell_iter; // Can directly go to the next cell since this one is now filled
                     }
                 }
