@@ -5,7 +5,7 @@ mod utils;
 mod sudoku;
 
 fn main() {
-    let mut sudoku: Sudoku = Sudoku::load("boards/evil1.sdku");
+    let mut sudoku: Sudoku = Sudoku::load("boards/endgame.sdku");
 
     sudoku.draw();
 
