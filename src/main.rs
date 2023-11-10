@@ -5,11 +5,11 @@ mod utils;
 mod sudoku;
 
 fn main() {
-    let mut sudoku: Sudoku = Sudoku::load("boards/endgame.sdku");
+    let mut sudoku: Sudoku = Sudoku::load("boards/challenge.sdku");
 
     sudoku.draw();
 
-    println!("{}", sudoku.is_solved().to_string());
+    println!("{}", sudoku.is_solved());
 
     let start: Instant = Instant::now();
     sudoku.solve();
@@ -17,5 +17,5 @@ fn main() {
 
     sudoku.draw();
 
-    println!("{}", sudoku.is_solved().to_string());
+    println!("{}", sudoku.is_solved());
 }
