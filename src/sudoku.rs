@@ -204,6 +204,65 @@ impl Sudoku {
         }
     }
 
+    fn compute_best_bet(&self) -> (usize, usize) {
+        // Computes what cell on the board would be the best to take a bet on. Since there are times
+        // when the solver doesn't know any further, it's last resort is to take a bet on a random number
+        // in some cell. This methods goal is to find the cell where a bet would have the most impact on
+        // other cells, as to quickly find out wether the bet was wrong or not!
+        // It is calculated as such: To find out how good one cell is, we take the sum of all potential
+        // numbers in its row, column and grid. We then divide this sum by the amount of empty cells
+        // in its row, column and grid. The lower the number, the better.
+
+        let mut best_bet_row_idx: usize = 0;
+        let mut best_bet_col_idx: usize = 0;
+        let mut best_bet_score: f32 = f32::NAN;
+        // Iterate over every cell
+        for row_idx in 0..9 { // Basically Y coordinate
+            for col_idx in 0..9 { // Basically X coordinate
+                // Skip filled cells
+                if self.board[row_idx][col_idx] != 0 {
+                    continue;
+                }
+
+                let mut amout_empty_cells_in_prox: usize = 0; // Amount of empty cells in current cells row, column and grid
+                let mut sum_whitelisted_nums: usize = 0;
+
+                for i in 0..9 {
+                    if self.board[row_idx][i] == 0 { // Make sure we're only looking at empty cells
+                        // Add sum of possible numbers for every cell in the current row
+                        sum_whitelisted_nums += self.blacklist[row_idx][i].iter().filter(|&n| *n == 0).count();
+                        // Add sum of empty cells in current row
+                        amout_empty_cells_in_prox += 1;
+                    }
+
+                    if self.board[i][col_idx] == 0 {
+                        sum_whitelisted_nums += self.blacklist[i][col_idx].iter().filter(|&n| *n == 0).count();
+                        amout_empty_cells_in_prox += 1;
+                    }
+                }
+
+                let box_row_idx: usize = (row_idx / 3) * 3; // Row index of this 3x3 grids top left cell
+                let box_col_idx: usize = (col_idx / 3) * 3; // Column index of this 3x3 grids top left cell
+                for i in 0..3 {
+                    for j in 0..3 {
+                        if self.board[box_row_idx + i][box_col_idx + j] == 0 {
+                            sum_whitelisted_nums += self.blacklist[box_row_idx + i][box_col_idx + j].iter().filter(|&n| *n == 0).count();
+                            amout_empty_cells_in_prox += 1;
+                        }
+                    }
+                }
+
+                let cell_score: f32 = sum_whitelisted_nums as f32 / amout_empty_cells_in_prox as f32;
+                if best_bet_score.is_nan() || cell_score < best_bet_score {
+                    best_bet_row_idx = row_idx;
+                    best_bet_col_idx = col_idx;
+                    best_bet_score = cell_score;
+                }
+            }
+        }
+        (best_bet_row_idx, best_bet_col_idx)
+    }
+
     pub fn draw(&self) {
         // Print the Sudoku in a readable manner
         println!("+-----------------------------+");
