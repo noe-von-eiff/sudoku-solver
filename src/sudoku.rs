@@ -73,14 +73,13 @@ impl Sudoku {
                 }
 
                 // Do some more complicated checks using the blacklist of a cells regions
-                let cell_whitelist: Vec<u8> = self.blacklist[row_idx][col_idx]
-                    .iter()
-                    .enumerate()
-                    .filter(|(_, &r)| r == 0)
-                    .map(|(index, _)| (index + 1) as u8)
-                    .collect(); // The numbers that could be put in this cell (basically a whitelist)
+                let cell_whitelist: [u8; 9] = self.whitelist_for(row_idx, col_idx);
 
                 for num in cell_whitelist {
+                    if num == 0 {
+                        continue;
+                    }
+
                     let mut is_only_possible_num: bool = true; // True if this num is the only number that can be put in this cell
 
                     // Fill cell with x if all other empty cells in this row have x in their blacklist
@@ -202,6 +201,20 @@ impl Sudoku {
                 break;
             }
         }
+    }
+
+    fn whitelist_for(&self, row_idx: usize, col_idx: usize) -> [u8; 9] {
+        // Returns the numbers that could be put in this cell (basically a whitelist)
+        let mut count: u8 = 0;
+        self.blacklist[row_idx][col_idx]
+            .map(|v: u8| {
+                count += 1;
+                if v == 0 {
+                    count
+                } else {
+                    0
+                }
+            })
     }
 
     fn compute_best_bet(&self) -> (usize, usize) {
