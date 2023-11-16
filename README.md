@@ -27,7 +27,8 @@ Sudoku" designed by Arto Inkala in 2012. The puzzle is featured and talked about
 ## TODOs
 - Finish README
 - Upgrade solver for Evil boards
-- Implement a Benchmarking Function
+- Add a new check for "shadow blacklists"
+- Add a backtracking method as a last resort if logic isnt enough
 - Some lookup tables to avoid division at every iteration
 - Write tests
 
@@ -78,10 +79,10 @@ Here is an example of a `.sdku` file and its format:
 0, 0, 2, 0, 0, 0, 0, 5, 0,
 0, 4, 0, 0, 0, 0, 3, 0, 0,
 ```
-There is probably an infinite amount of ways to break the `load()` function by inputing
+There is probably an infinite amount of ways to break the `load()` method by inputing
 some bogus format, as I haven't fully fleshed out the method, so be careful and kind with it ;)
 ### `draw()`
-The `draw()` function simply draws the current state of the board in the console.
+The `draw()` method simply draws the current state of the board in the console.
 ```rust
 sudoku.draw();
 ```
@@ -102,7 +103,7 @@ Here would be the output for the example `.sdku` file that was shown in the `loa
 +-----------------------------+
 ```
 ### `solve()`
-This function simply tries its best to solve the board. The strategies it uses to do so are
+This method simply tries its best to solve the board. The strategies it uses to do so are
 explained in the `Explanations` section.
 ```rust
 sudoku.solve()

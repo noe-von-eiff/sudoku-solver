@@ -127,6 +127,7 @@ impl Sudoku {
                     // +-----------------------------+                 +-----------------------------+
                     is_only_possible_num = true; // Reset to true
                     for i in 0..9 { // Iterate through the column
+                        // TODO This is wrong, self.board[row_idx][i] iterates through a row, not a column. Please make correct comments
                         if i != col_idx && self.board[row_idx][i] == 0 { // If we aren't on the current cell and the cell is empty
                             let temp_blacklist: [u8; 9] = self.blacklist[row_idx][i];
                             if !temp_blacklist.contains(&num) {
@@ -177,20 +178,20 @@ impl Sudoku {
                     }
                 }
 
-            // 2. Fill cells of the board where the blacklist is only missing one number
+                // 2. Fill cells of the board where the blacklist is only missing one number
 
-                    // If we are talking about an empty cell...
+                // If we are talking about an empty cell...
                 if self.board[row_idx][col_idx] == 0 {
-                        // ...check the blacklist for a possible number to insert
-                        // If the amount of 0s in that cells blacklist is 1...
+                    // ...check the blacklist for a possible number to insert
+                    // If the amount of 0s in that cells blacklist is 1...
                     if self.blacklist[row_idx][col_idx].iter().filter(|&n| *n == 0).count() == 1 {
-                            // ...the number at that index is the only possible entry for that cell
+                        // ...the number at that index is the only possible entry for that cell
                         let index: usize = self.blacklist[row_idx][col_idx].iter().position(|&r| r == 0).unwrap();
                         self.board[row_idx][col_idx] = (index + 1) as u8;
-                            is_changed = true;
-                        }
+                        is_changed = true;
                     }
                 }
+            }
 
             // 3. Check if a change occured
             if !is_changed {
