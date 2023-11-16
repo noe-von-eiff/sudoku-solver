@@ -19,15 +19,16 @@ impl Sudoku {
         while !self.is_solved() {
             let mut is_changed: bool = false;
 
-            // 1. Perform several checks to add entries to the blacklist
             'cell_iter:for i_cell in 0..81 { // Iterate over every cell
-                let row_idx: usize = i_cell / 9;
+                let row_idx: usize = i_cell / 9; // This calculation seems to be faster then 2 0..9 for-loops. idk why tho!
                 let col_idx: usize = i_cell % 9;
 
                 // Skip filled cells
                 if self.board[row_idx][col_idx] != 0 {
                     continue;
                 }
+
+                // 1. Perform several checks to add entries to the blacklist
 
                 // Fill this cells blacklist with numbers that appear in the current row
                 let row: [u8; 9] = self.board[row_idx];
@@ -74,7 +75,6 @@ impl Sudoku {
 
                 // Do some more complicated checks using the blacklist of a cells regions
                 let cell_whitelist: [u8; 9] = self.whitelist_for(row_idx, col_idx);
-
                 for num in cell_whitelist {
                     if num == 0 {
                         continue;
@@ -176,24 +176,21 @@ impl Sudoku {
                         continue 'cell_iter; // Can directly go to the next cell since this one is now filled
                     }
                 }
-            }
 
             // 2. Fill cells of the board where the blacklist is only missing one number
-            for i in 0..9 {
-                for j in 0..9 {
+
                     // If we are talking about an empty cell...
-                    if self.board[i][j] == 0 {
+                if self.board[row_idx][col_idx] == 0 {
                         // ...check the blacklist for a possible number to insert
                         // If the amount of 0s in that cells blacklist is 1...
-                        if self.blacklist[i][j].iter().filter(|&n| *n == 0).count() == 1 {
+                    if self.blacklist[row_idx][col_idx].iter().filter(|&n| *n == 0).count() == 1 {
                             // ...the number at that index is the only possible entry for that cell
-                            let index: usize = self.blacklist[i][j].iter().position(|&r| r == 0).unwrap();
-                            self.board[i][j] = (index + 1) as u8;
+                        let index: usize = self.blacklist[row_idx][col_idx].iter().position(|&r| r == 0).unwrap();
+                        self.board[row_idx][col_idx] = (index + 1) as u8;
                             is_changed = true;
                         }
                     }
                 }
-            }
 
             // 3. Check if a change occured
             if !is_changed {
