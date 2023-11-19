@@ -116,4 +116,40 @@ let solved: bool = sudoku.is_solved();
 ```
 
 ## Explanations
-TODO: How the checks work and graphical representations of some patterns
+This chapter will cover how the solver works and what kind of strategies it uses to solve
+a sudoku board.
+### The blacklist
+what the blacklist is and how it is inteded to be used. say that each iteration tries to write
+as much as possible in the blacklist, bc the more it is filled up that better the solver can do its work!
+### Main loop
+The main loop iterates until the sudoku is solved. Uses the util is_solved() method for this. Main loop
+performs 3 main steps: it will iterate over every cell and first do 3 basic checks and then 3 more complex checks
+to fill the cells blacklists and numbers. Secondly it will go through every cells blacklist and see if there
+are is only one missing number to it, which would mean that that number can be inserted in this cell. The third and
+last step that it performs is to check if any changes have been made while in this main-loop iteration. A change occurs
+if the blacklist has been changed in this iteration or if a number was placed on the board in this iteration. If this did
+not happen, the checks aren't enough for this board and some smart emergency backtracking is required.
+### First 3 basic checks
+--> Add as vocabulary that a cells so called "region" is considered to be the cells in the row, columns and 3x3 grid of the
+current cell. Maybe add a graphic of what a cells region is.
+These 3 checks basically add every number that is in a cells region to its blacklist.
+1. First basic check looks at the current cells row and adds every number of this row to the blacklist of the cell
+2. Second basic check looks at the current cells column and adds every number of this column to the blacklist of the cell
+3. Third basic check looks at the current cells 3x3 grid and adds every number of this 3x3 grid to the blacklist of the cell
+### 3 more complex checks
+These checks fill the board if certain conditions regarding the blacklist are met
+Add graphs on for these checks for better visualization
+First we iterate through every cell and at each cell, we compute its whitelist and then iterate over the numbers that
+could fit in this cell. For simplicity we will call the number from the whitelist in an iteration `X`. 
+In this iteration we do the following checks:
+1. Check if all the other cells in this current row have the whitelist number we are looking at in their blacklist.
+2. Check if all the other cells in this current column have the whitelist number we are looking at in their blacklist.
+3. Check if all the other cells in this current 3x3 grid have the whitelist number we are currently looking at in their blacklist.
+If all cell-blacklists in the current cells row, column or 3x3 grid contain a number that is in this cells whitelist,
+that means that this is the only place where the number can be placed!
+### Emergency Backtracking
+These checks are a big help and can solve most humanly solvable sudokus. A lot of time tho, these checks aren't enough!
+In case we see that the checks didn't change anything to the board or to the blacklist, we so an emergency backtracking.
+First we compute the best bet to take. It is a numerical value of every cell and how much changing that cell would affect
+other cells. We want our change to affect a lot of surrounding cells, so we can quickly determine if the bet we took was 
+correct or not and backtrack in case it wasn't. backtracking is not yet done so I can't say more rn.
