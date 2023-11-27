@@ -14,9 +14,10 @@ per puzzle.
 
 I also looked into how fast other solvers are online and stumbled upon 
 [this small challenge on StackExchange](https://codegolf.stackexchange.com/questions/190727/the-fastest-sudoku-solver).
-The goal of this challenge is to use an algorithm to solve a given 17-clue board. I've copied
-the board to the `challenge.sdku` board file. The official winner of the challenge used Tdoku and
-got a solving time of 201ms! This solver managed to solve the challenge with an average time of 2ms :)
+The goal of this challenge is to use an algorithm to solve a given list of 17-clue boards. I've copied
+one board to the `challenge.sdku` board file. The official winner of the challenge used Tdoku and
+got a solving time of 201ms for all the 49k boards! This solver managed to solve one board with an average time of 2ms :)
+I still need to measure how much time it takes to solve them all.
 
 The hardest challenge I've set for myself is to make the solver be able to solve the "World's most difficult
 Sudoku" designed by Arto Inkala in 2012. The puzzle is featured and talked about
@@ -26,6 +27,7 @@ Sudoku" designed by Arto Inkala in 2012. The puzzle is featured and talked about
 
 ## TODOs
 - Finish README
+- Better board loading: Should be in dot-notation. Can put all the strings in a hashmap then.
 - Upgrade solver for Evil boards
 - Add a new check for "shadow blacklists"
 - Add a backtracking method as a last resort if logic isnt enough
