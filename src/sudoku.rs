@@ -1,6 +1,5 @@
 use crate::utils::has_duplicates;
 use crate::backtracking::BacktrackNode;
-use std::fs;
 
 pub struct Sudoku {
     // 2D 9x9 matrix of the sudoku board.
@@ -396,22 +395,18 @@ impl Sudoku {
         true
     }
 
-    pub fn load(path: &str) -> Self {
-        // Load a sudoku from a file and return a Sudoku struct
-        let contents = fs::read_to_string(path)
-            .expect("Should have been able to read the file");
+    pub fn from_string(str: &str) -> Self {
+        // Turns a sudoku string into a Sudoku struct. A sudoku string should look like this: 0043002...
+        let cell_numbers_as_str: Vec<u8> = str.split("")
+            .map(|s| s.trim())
+            .filter(|s| !s.is_empty())
+            .map(|s| s.parse().unwrap())
+            .collect();
 
-        let contents: String = contents.replace("\n", "");
-        let contents: String = contents.replace("\r", "");
-        let contents: String = contents.replace(" ", "");
-
-        let cell_numbers_as_str: Vec<&str> = contents.split(",").collect();
         let mut board: [[u8; 9]; 9] = [[0u8; 9]; 9];
         for i in 0..9 {
             for j in 0..9 {
-                let as_str: &str = cell_numbers_as_str[j + 9 * i];
-                let as_int: u8 = as_str.parse().expect("The sdku file contains non-numeric values!");
-                board[i][j] = as_int;
+                board[i][j] = *cell_numbers_as_str.get(j + 9 * i).unwrap();
             }
         }
 
