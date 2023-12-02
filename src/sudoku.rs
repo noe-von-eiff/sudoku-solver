@@ -1,4 +1,5 @@
 use crate::utils::has_duplicates;
+use crate::backtracking::BacktrackNode;
 use std::fs;
 
 pub struct Sudoku {
@@ -11,11 +12,18 @@ pub struct Sudoku {
     // which would tell us that every number except for the number 5 cannot be placed in that
     // cell, thus the number 5 should be inserted in board[0][0].
     blacklist: [[[u8; 9]; 9]; 9],
+    // Vector of all the currently active backtracking nodes. If we can't go further with logic,
+    // a new BacktrackNode is added to the Vector. Each node represents a bet we are taking on a
+    // cell where we don't know for sure what number goes in.
+    backtracking_nodes: Vec<BacktrackNode>,
+    // TODO maybe save the board in a hasmap instead of an array. maybe thats faster
+    // maybe u could even have several hashmaps, one for columns, one for rows and one for boxes??
 }
 
 impl Sudoku {
     pub fn solve(&mut self) {
         // Solve the Sudoku (the crux!)
+        let mut is_backtracking: bool = false; // Only true when other logic doesn't work
         while !self.is_solved() {
             let mut is_changed: bool = false;
 
@@ -191,14 +199,61 @@ impl Sudoku {
                         is_changed = true;
                     }
                 }
+
+                // Handle Backtracking: Check if the backtracking has caused errors
+                if is_backtracking {
+                    // If this cell is empty, but its blacklist doesn't have any possible numbers left...
+                    if self.board[row_idx][col_idx] == 0 && self.blacklist[row_idx][col_idx].iter().filter(|&n| *n == 0).count() == 0 {
+                        // ... there is an error (caused by our bet) and we should backtrack!
+                        self.reset_state(); // Reset to inital board and blacklist state
+                        self.try_new_num(); // Try with the next possible number
+                        is_changed = true;
+                    }
+                }
             }
 
             // 3. Check if a change occured
             if !is_changed {
-                println!("Sudoku is not solvable with my current checks!");
-                break;
+                // Activate backtracking
+                is_backtracking = true;
+                let (bb_row_idx, bb_col_idx) = self.compute_best_bet();
+                let cell_whitelist: Vec<u8> = self.blacklist[bb_row_idx][bb_col_idx]
+                    .iter()
+                    .enumerate()
+                    .filter(|(_, &r)| r == 0)
+                    .map(|(index, _)| (index + 1) as u8)
+                    .collect();
+                self.backtracking_nodes.push(BacktrackNode {
+                    cell_row_idx: bb_row_idx,
+                    cell_col_idx: bb_col_idx,
+                    possible_numbers: cell_whitelist,
+                    initial_board: self.board.clone(),
+                    initial_blacklist: self.blacklist.clone(),
+                });
+                self.try_new_num(); // Try with the next possible number
             }
         }
+    }
+
+    fn try_new_num(&mut self) {
+        // Inserts the next possible value on the board. Only use this method when backtracking!
+        let mut current_backtrack_node: BacktrackNode = self.backtracking_nodes.pop().unwrap();
+        let num_to_try: u8 = current_backtrack_node.pop_next();
+
+        if num_to_try == 0 { // No more nums in vector, means the num from parent backtrack node is wrong
+            self.reset_state(); // Reset to inital board and blacklist state
+            self.try_new_num(); // Try with the next possible number
+        } else {
+            self.board[current_backtrack_node.cell_row_idx][current_backtrack_node.cell_col_idx] = num_to_try;
+            self.backtracking_nodes.push(current_backtrack_node); // Put the node back in our vector
+        }
+    }
+
+    fn reset_state(&mut self) {
+        // Resets the board and blacklist to the defined inital state. Only use this method when backtracking!
+        let last_backtrack_node: &BacktrackNode = self.backtracking_nodes.last().unwrap();
+        self.board = last_backtrack_node.initial_board.clone(); // Reset to initial board state
+        self.blacklist = last_backtrack_node.initial_blacklist.clone(); // Reset to initial blacklist state
     }
 
     fn whitelist_for(&self, row_idx: usize, col_idx: usize) -> [u8; 9] {
@@ -292,7 +347,7 @@ impl Sudoku {
         }
         println!("+-----------------------------+");
     }
-    
+
     pub fn is_solved(&self) -> bool {
         // Return true if the sudoku is solved, false if not
         // Empty cells
@@ -363,6 +418,7 @@ impl Sudoku {
         Self {
             board: board,
             blacklist: [[[0u8; 9]; 9]; 9],
+            backtracking_nodes: Vec::new(),
         }
     }
 }
