@@ -1,4 +1,5 @@
 use crate::sudoku::Sudoku;
+use std::fs;
 use std::time::Instant;
 use std::collections::HashMap;
 
@@ -21,7 +22,8 @@ fn main() {
         ("evil2", "400065007170000090000004080002030009000401000600090300090100000010000038200580001"),
         ("evil3", "902000008000085009400200000050006300010030020006400090000002003500810000600000702"),
         ("inkala", "800000000003600000070090200050007000000045700000100030001000068008500010090000400"),
-        ("challenge", "000700000100000000000430200000000006000509000000000418000081000002000050040000300"),
+        ("challenge1", "000700000100000000000430200000000006000509000000000418000081000002000050040000300"),
+        ("challenge2", "000000012008030000000000040120500000000004700060000000507000300000620000000100000")
     ]);
 
     let mut sudoku: Sudoku = Sudoku::from_string(boards.get("easy1").unwrap());
@@ -36,4 +38,16 @@ fn main() {
     sudoku.draw();
 
     println!("{}", sudoku.is_solved());
+
+    // println!("Start loading Sudokus");
+    // let boards: String = fs::read_to_string("all_17_clue_sudokus.txt").expect("Should have been able to read the file");
+    // let boards: Vec<&str> = boards.split("\n").collect();
+    // let boards: &[&str] = &boards[1..5000]; // Takes ~21 seconds for first 5k
+    // println!("Start solving Sudokus");
+    // let start: Instant = Instant::now();
+    // for board in boards {
+    //     let mut sudoku: Sudoku = Sudoku::from_string(board);
+    //     sudoku.solve();
+    // }
+    // println!("Time elapsed to solve all boards: {:?}", start.elapsed());
 }

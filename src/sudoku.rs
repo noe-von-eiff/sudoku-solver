@@ -214,6 +214,7 @@ impl Sudoku {
             // 3. Check if a change occured
             if !is_changed {
                 // Activate backtracking
+                println!("Backtracking!");
                 is_backtracking = true;
                 let (bb_row_idx, bb_col_idx) = self.compute_best_bet();
                 let cell_whitelist: Vec<u8> = self.blacklist[bb_row_idx][bb_col_idx]
