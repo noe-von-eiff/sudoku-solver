@@ -3,7 +3,6 @@ use std::fs;
 use std::time::Instant;
 use std::collections::HashMap;
 
-mod utils;
 mod sudoku;
 mod backtracking;
 
@@ -26,7 +25,7 @@ fn main() {
         ("challenge2", "000000012008030000000000040120500000000004700060000000507000300000620000000100000")
     ]);
 
-    let mut sudoku: Sudoku = Sudoku::from_string(boards.get("easy1").unwrap());
+    let mut sudoku: Sudoku = Sudoku::from_string(boards.get("easy3").unwrap());
 
     sudoku.draw();
     println!("{}", sudoku.is_solved());

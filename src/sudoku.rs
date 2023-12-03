@@ -1,4 +1,3 @@
-use crate::utils::has_duplicates;
 use crate::backtracking::BacktrackNode;
 
 pub struct Sudoku {
@@ -350,16 +349,10 @@ impl Sudoku {
 
     pub fn is_solved(&self) -> bool {
         // Return true if the sudoku is solved, false if not
-        // Empty cells
-        for row in self.board {
-            if row.contains(&0) {
-                return false;
-            }
-        }
-
         // Test rows
         for row in self.board {
-            if has_duplicates(&row) {
+            let sum: u8 = row.iter().sum();
+            if sum != 45 {
                 return false;
             }
         }
@@ -371,7 +364,8 @@ impl Sudoku {
                 column[j] = self.board[j][i];
             }
 
-            if has_duplicates(&column) {
+            let sum: u8 = column.iter().sum();
+            if sum != 45 {
                 return false;
             }
         }
@@ -388,7 +382,8 @@ impl Sudoku {
                     }
                 }
 
-                if has_duplicates(&grid) {
+                let sum: u8 = grid.iter().sum();
+                if sum != 45 {
                     return false;
                 }
             }
