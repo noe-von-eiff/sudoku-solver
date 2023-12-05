@@ -3,17 +3,11 @@ use crate::backtracking::BacktrackNode;
 pub struct Sudoku {
     // 2D 9x9 matrix of the sudoku board.
     board: [[u8; 9]; 9],
-    // Create a blacklist of every number that can't be placed on a specific cell.
-    // This is a 3D 9x9x9 matrix where the first 2 indices define the cell and the last
-    // index returns 0 if the number could be placed on that cell or a number, if that number
-    // can't be placed on that cell. Eg: blacklist[0][0] may return [1, 2, 3, 4, 0, 6, 7, 8, 9]
-    // which would tell us that every number except for the number 5 cannot be placed in that
-    // cell, thus the number 5 should be inserted in board[0][0].
+    // Blacklist of every number that can't be placed on a specific cell.
     blacklist: [[[u8; 9]; 9]; 9],
-    // Vector of all the currently active backtracking nodes. If we can't go further with logic,
-    // a new BacktrackNode is added to the Vector. Each node represents a bet we are taking on a
-    // cell where we don't know for sure what number goes in.
-    backtracking_nodes: Vec<BacktrackNode>,
+    // Stack of all the currently active backtracking nodes. If we can't go further with logic,
+    // a new node is added to the stack.
+    backtrack_stack: Vec<BacktrackNode>,
     // TODO maybe save the board in a hasmap instead of an array. maybe thats faster
     // maybe u could even have several hashmaps, one for columns, one for rows and one for boxes??
 }
@@ -89,19 +83,6 @@ impl Sudoku {
                     let mut is_only_possible_num: bool = true; // True if this num is the only number that can be put in this cell
 
                     // Fill cell with x if all other empty cells in this row have x in their blacklist
-                    // +-----------------------------+                 +-----------------------------+
-                    // |         |    9  7 |       6 |                 |         |    9  7 |       6 |
-                    // | 5       | 2       | 1     4 |                 | 5    *9*| 2       | 1     4 |
-                    // | 3       |       1 |    7    |                 | 3       |       1 |    7    |
-                    // |---------+---------+---------|                 |---------+---------+---------|
-                    // |    9  3 | 8  2  5 |       7 |                 |    9  3 | 8  2  5 |       7 |
-                    // |         | 9  1  4 |         | ----becomes---> |         | 9  1  4 |         |
-                    // | 4       | 7  3  6 | 5  9    |                 | 4       | 7  3  6 | 5  9    |
-                    // |---------+---------+---------|                 |---------+---------+---------|
-                    // |    4    | 1       |       9 |                 |    4    | 1       |       9 |
-                    // | 8     2 |       9 |       1 |                 | 8     2 |       9 |       1 |
-                    // | 9       | 6  4    |         |                 | 9       | 6  4    |         |
-                    // +-----------------------------+                 +-----------------------------+
                     for i in 0..9 { // Iterate through the row
                         if i != row_idx && self.board[i][col_idx] == 0 { // If we aren't on the current cell and the cell is empty
                             let temp_blacklist: [u8; 9] = self.blacklist[i][col_idx];
@@ -118,19 +99,6 @@ impl Sudoku {
                     }
 
                     // Fill cell with x if all other empty cells in this column have x in their blacklist
-                    // +-----------------------------+                 +-----------------------------+
-                    // | 1       |    9  7 |       6 |                 | 1       |    9  7 |       6 |
-                    // | 5     9 | 2       | 1     4 |                 | 5 *7* 9 | 2       | 1     4 |
-                    // | 3       |       1 | 9  7    |                 | 3       |       1 | 9  7    |
-                    // |---------+---------+---------|                 |---------+---------+---------|
-                    // | 6  9  3 | 8  2  5 | 4  1  7 |                 | 6  9  3 | 8  2  5 | 4  1  7 |
-                    // | 2     7 | 9  1  4 |         | ----becomes---> | 2     7 | 9  1  4 |         |
-                    // | 4       | 7  3  6 | 5  9    |                 | 4       | 7  3  6 | 5  9    |
-                    // |---------+---------+---------|                 |---------+---------+---------|
-                    // | 7  4    | 1       |       9 |                 | 7  4    | 1       |       9 |
-                    // | 8     2 |    7  9 |    4  1 |                 | 8     2 |    7  9 |    4  1 |
-                    // | 9       | 6  4    | 7       |                 | 9       | 6  4    | 7       |
-                    // +-----------------------------+                 +-----------------------------+
                     is_only_possible_num = true; // Reset to true
                     for i in 0..9 { // Iterate through the column
                         // TODO This is wrong, self.board[row_idx][i] iterates through a row, not a column. Please make correct comments
@@ -149,19 +117,6 @@ impl Sudoku {
                     }
 
                     // Fill cell with x if all other empty cells in this 3x3 grid have x in their blacklist
-                    // +-----------------------------+                 +-----------------------------+
-                    // |    4  5 | 2  8    | 7  9  6 |                 |    4  5 | 2  8    | 7  9  6 |
-                    // |         |       4 | 1       |                 |         |       4 | 1       |
-                    // |       9 |         | 4     3 |                 |       9 |         | 4     3 |
-                    // |---------+---------+---------|                 |---------+---------+---------|
-                    // | 9       | 7       | 5  6    |                 | 9       | 7       | 5  6    |
-                    // |    8    | 5  1    | 9  4  7 | ----becomes---> |*6* 8    | 5  1    | 9  4  7 |
-                    // | 7  5    |       9 |       1 |                 | 7  5    |       9 |       1 |
-                    // |---------+---------+---------|                 |---------+---------+---------|
-                    // | 4     6 |         | 2       |                 | 4     6 |         | 2       |
-                    // | 5  2  7 | 4       |         |                 | 5  2  7 | 4       |         |
-                    // |         |    2  5 | 6  7  4 |                 |         |    2  5 | 6  7  4 |
-                    // +-----------------------------+                 +-----------------------------+
                     is_only_possible_num = true; // Reset to true
                     'grid_iter:for i in 0..3 { // Iterate through the 3x3 grid
                         for j in 0..3 {
@@ -213,7 +168,7 @@ impl Sudoku {
             // 3. Check if a change occured
             if !is_changed {
                 // Activate backtracking
-                println!("Backtracking!");
+                // println!("Backtracking!");
                 is_backtracking = true;
                 let (bb_row_idx, bb_col_idx) = self.compute_best_bet();
                 let cell_whitelist: Vec<u8> = self.blacklist[bb_row_idx][bb_col_idx]
@@ -222,7 +177,7 @@ impl Sudoku {
                     .filter(|(_, &r)| r == 0)
                     .map(|(index, _)| (index + 1) as u8)
                     .collect();
-                self.backtracking_nodes.push(BacktrackNode {
+                self.backtrack_stack.push(BacktrackNode {
                     cell_row_idx: bb_row_idx,
                     cell_col_idx: bb_col_idx,
                     possible_numbers: cell_whitelist,
@@ -236,7 +191,7 @@ impl Sudoku {
 
     fn try_new_num(&mut self) {
         // Inserts the next possible value on the board. Only use this method when backtracking!
-        let mut current_backtrack_node: BacktrackNode = self.backtracking_nodes.pop().unwrap();
+        let mut current_backtrack_node: BacktrackNode = self.backtrack_stack.pop().unwrap();
         let num_to_try: u8 = current_backtrack_node.pop_next();
 
         if num_to_try == 0 { // No more nums in vector, means the num from parent backtrack node is wrong
@@ -244,13 +199,13 @@ impl Sudoku {
             self.try_new_num(); // Try with the next possible number
         } else {
             self.board[current_backtrack_node.cell_row_idx][current_backtrack_node.cell_col_idx] = num_to_try;
-            self.backtracking_nodes.push(current_backtrack_node); // Put the node back in our vector
+            self.backtrack_stack.push(current_backtrack_node); // Put the node back in our vector
         }
     }
 
     fn reset_state(&mut self) {
         // Resets the board and blacklist to the defined inital state. Only use this method when backtracking!
-        let last_backtrack_node: &BacktrackNode = self.backtracking_nodes.last().unwrap();
+        let last_backtrack_node: &BacktrackNode = self.backtrack_stack.last().unwrap();
         self.board = last_backtrack_node.initial_board.clone(); // Reset to initial board state
         self.blacklist = last_backtrack_node.initial_blacklist.clone(); // Reset to initial blacklist state
     }
@@ -270,17 +225,10 @@ impl Sudoku {
     }
 
     fn compute_best_bet(&self) -> (usize, usize) {
-        // Computes what cell on the board would be the best to take a bet on. Since there are times
-        // when the solver doesn't know any further, it's last resort is to take a bet on a random number
-        // in some cell. This methods goal is to find the cell where a bet would have the most impact on
-        // other cells, as to quickly find out wether the bet was wrong or not!
-        // It is calculated as such: To find out how good one cell is, we take the sum of all potential
-        // numbers in its row, column and grid. We then divide this sum by the amount of empty cells
-        // in its row, column and grid. The lower the number, the better.
-
+        // Returns the cell with the least amount of possible numbers that could be placed in it
         let mut best_bet_row_idx: usize = 0;
         let mut best_bet_col_idx: usize = 0;
-        let mut best_bet_score: f32 = f32::NAN;
+        let mut best_bet_possible_numbers: usize = 9;
         // Iterate over every cell
         for row_idx in 0..9 { // Basically Y coordinate
             for col_idx in 0..9 { // Basically X coordinate
@@ -289,39 +237,16 @@ impl Sudoku {
                     continue;
                 }
 
-                let mut amout_empty_cells_in_prox: usize = 0; // Amount of empty cells in current cells row, column and grid
-                let mut sum_whitelisted_nums: usize = 0;
-
-                for i in 0..9 {
-                    if self.board[row_idx][i] == 0 { // Make sure we're only looking at empty cells
-                        // Add sum of possible numbers for every cell in the current row
-                        sum_whitelisted_nums += self.blacklist[row_idx][i].iter().filter(|&n| *n == 0).count();
-                        // Add sum of empty cells in current row
-                        amout_empty_cells_in_prox += 1;
-                    }
-
-                    if self.board[i][col_idx] == 0 {
-                        sum_whitelisted_nums += self.blacklist[i][col_idx].iter().filter(|&n| *n == 0).count();
-                        amout_empty_cells_in_prox += 1;
-                    }
-                }
-
-                let box_row_idx: usize = (row_idx / 3) * 3; // Row index of this 3x3 grids top left cell
-                let box_col_idx: usize = (col_idx / 3) * 3; // Column index of this 3x3 grids top left cell
-                for i in 0..3 {
-                    for j in 0..3 {
-                        if self.board[box_row_idx + i][box_col_idx + j] == 0 {
-                            sum_whitelisted_nums += self.blacklist[box_row_idx + i][box_col_idx + j].iter().filter(|&n| *n == 0).count();
-                            amout_empty_cells_in_prox += 1;
-                        }
-                    }
-                }
-
-                let cell_score: f32 = sum_whitelisted_nums as f32 / amout_empty_cells_in_prox as f32;
-                if best_bet_score.is_nan() || cell_score < best_bet_score {
+                let possible_nums_count: usize = self.blacklist[row_idx][col_idx].iter().filter(|&n| *n == 0).count();
+                if possible_nums_count < best_bet_possible_numbers {
                     best_bet_row_idx = row_idx;
                     best_bet_col_idx = col_idx;
-                    best_bet_score = cell_score;
+                    best_bet_possible_numbers = possible_nums_count;
+
+                    if best_bet_possible_numbers == 2 {
+                        // Early return because 2 is the minimum we can possibly find
+                        return (best_bet_row_idx, best_bet_col_idx);
+                    }
                 }
             }
         }
@@ -409,7 +334,7 @@ impl Sudoku {
         Self {
             board: board,
             blacklist: [[[0u8; 9]; 9]; 9],
-            backtracking_nodes: Vec::new(),
+            backtrack_stack: Vec::new(),
         }
     }
 }

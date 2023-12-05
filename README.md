@@ -25,11 +25,6 @@ strategies I implemented simply aren't enough, so I had to add a last resort bac
 enough, the solver takes a bet on a cell and tries different possible numbers. With the backtracking algorithm
 implemented, the solver solves the Inkala board in about 100ms!
 
-## TODOs
-- Finish README
-- Some lookup tables to avoid division at every iteration
-- Write tests
-
 ## Usage
 Here I'll explain the few methods that exist and what they are used for.
 ### Example
@@ -102,37 +97,89 @@ let solved: bool = sudoku.is_solved();
 This chapter will cover how the solver works and what kind of strategies it uses to solve
 a sudoku board.
 ### The blacklist
-what the blacklist is and how it is inteded to be used. say that each iteration tries to write
-as much as possible in the blacklist, bc the more it is filled up that better the solver can do its work!
+Internally, the solver uses a blacklist to determine what number can and cannot be in a cell.
+The blacklist is simply a 3D 9 by 9 by 9 array. Each cell of the board has one 9 digit long array
+attributed. At each iteration, the solver tries to fill up each array of each cell as much as possible.
+The more the blacklist is filled, the easier it gets for the solver to determine which number goes
+in which cell. Here is an example of how the blacklist is used internally:
+1. The algorithm looks at the first cells blacklist: `blacklist[0][0]`
+2. The output is an array of the numbers that cannot be placed in the first cell: `[1, 2, 3, 4, 0, 6, 7, 8, 9]`
+3. The algorith determines that only the number `5` can be placed in the first cell
 ### Main loop
-The main loop iterates until the sudoku is solved. Uses the util is_solved() method for this. Main loop
-performs 3 main steps: it will iterate over every cell and first do 3 basic checks and then 3 more complex checks
-to fill the cells blacklists and numbers. Secondly it will go through every cells blacklist and see if there
-are is only one missing number to it, which would mean that that number can be inserted in this cell. The third and
-last step that it performs is to check if any changes have been made while in this main-loop iteration. A change occurs
-if the blacklist has been changed in this iteration or if a number was placed on the board in this iteration. If this did
-not happen, the checks aren't enough for this board and some smart emergency backtracking is required.
+The main loop iterates until the sudoku is solved and performs 3 main steps on each iteration: 
+1. The solver will iterate over every cell and first do 3 basic checks and then 3 more complex checks
+to fill the cells blacklists and numbers. 
+2. Then it will go through every cells blacklist and see if there are is only one missing number to it, 
+which would mean that that number can be inserted in this cell. If that is the case, the number is inserted.
+3. Finally we check if any changes have been made while in this main-loop iteration. A change occurs if the 
+blacklist has been changed or if a number was placed on the board in this iteration. If this did not happen, 
+the checks aren't enough for this board and emergency backtracking is required.
 ### First 3 basic checks
---> Add as vocabulary that a cells so called "region" is considered to be the cells in the row, columns and 3x3 grid of the
-current cell. Maybe add a graphic of what a cells region is.
-These 3 checks basically add every number that is in a cells region to its blacklist.
+These 3 checks basically add every number that is in a cells region to its blacklist. We define a cells region as all the cells
+that are in the same row, column and 3x3 grid of the current cell. 
 1. First basic check looks at the current cells row and adds every number of this row to the blacklist of the cell
 2. Second basic check looks at the current cells column and adds every number of this column to the blacklist of the cell
 3. Third basic check looks at the current cells 3x3 grid and adds every number of this 3x3 grid to the blacklist of the cell
 ### 3 more complex checks
-These checks fill the board if certain conditions regarding the blacklist are met
-Add graphs on for these checks for better visualization
-First we iterate through every cell and at each cell, we compute its whitelist and then iterate over the numbers that
+These checks fill the board if certain conditions regarding the blacklist are met.
+While iterating through the cells of the board, we compute the cells whitelist and then iterate over the numbers that
 could fit in this cell. For simplicity we will call the number from the whitelist in an iteration `X`. 
 In this iteration we do the following checks:
-1. Check if all the other cells in this current row have the whitelist number we are looking at in their blacklist.
-2. Check if all the other cells in this current column have the whitelist number we are looking at in their blacklist.
-3. Check if all the other cells in this current 3x3 grid have the whitelist number we are currently looking at in their blacklist.
-If all cell-blacklists in the current cells row, column or 3x3 grid contain a number that is in this cells whitelist,
-that means that this is the only place where the number can be placed!
+1. Check if all the other cells in this current row have `X` in their blacklist. If they do, `X` can only be placed here.
+```
++-----------------------------+                 +-----------------------------+
+|         |    9  7 |       6 |                 |         |    9  7 |       6 |
+| 5       | 2       | 1     4 |                 | 5    *9*| 2       | 1     4 |
+| 3       |       1 |    7    |                 | 3       |       1 |    7    |
+|---------+---------+---------|                 |---------+---------+---------|
+|    9  3 | 8  2  5 |       7 |                 |    9  3 | 8  2  5 |       7 |
+|         | 9  1  4 |         | ----becomes---> |         | 9  1  4 |         |
+| 4       | 7  3  6 | 5  9    |                 | 4       | 7  3  6 | 5  9    |
+|---------+---------+---------|                 |---------+---------+---------|
+|    4    | 1       |       9 |                 |    4    | 1       |       9 |
+| 8     2 |       9 |       1 |                 | 8     2 |       9 |       1 |
+| 9       | 6  4    |         |                 | 9       | 6  4    |         |
++-----------------------------+                 +-----------------------------+
+```
+2. Check if all the other cells in this current column have `X` in their blacklist. If they do, `X` can only be placed here.
+```
++-----------------------------+                 +-----------------------------+
+| 1       |    9  7 |       6 |                 | 1       |    9  7 |       6 |
+| 5     9 | 2       | 1     4 |                 | 5 *7* 9 | 2       | 1     4 |
+| 3       |       1 | 9  7    |                 | 3       |       1 | 9  7    |
+|---------+---------+---------|                 |---------+---------+---------|
+| 6  9  3 | 8  2  5 | 4  1  7 |                 | 6  9  3 | 8  2  5 | 4  1  7 |
+| 2     7 | 9  1  4 |         | ----becomes---> | 2     7 | 9  1  4 |         |
+| 4       | 7  3  6 | 5  9    |                 | 4       | 7  3  6 | 5  9    |
+|---------+---------+---------|                 |---------+---------+---------|
+| 7  4    | 1       |       9 |                 | 7  4    | 1       |       9 |
+| 8     2 |    7  9 |    4  1 |                 | 8     2 |    7  9 |    4  1 |
+| 9       | 6  4    | 7       |                 | 9       | 6  4    | 7       |
++-----------------------------+                 +-----------------------------+
+```
+3. Check if all the other cells in this current 3x3 grid have `X` in their blacklist. If they do, `X` can only be placed here.
+```
++-----------------------------+                 +-----------------------------+
+|    4  5 | 2  8    | 7  9  6 |                 |    4  5 | 2  8    | 7  9  6 |
+|         |       4 | 1       |                 |         |       4 | 1       |
+|       9 |         | 4     3 |                 |       9 |         | 4     3 |
+|---------+---------+---------|                 |---------+---------+---------|
+| 9       | 7       | 5  6    |                 | 9       | 7       | 5  6    |
+|    8    | 5  1    | 9  4  7 | ----becomes---> |*6* 8    | 5  1    | 9  4  7 |
+| 7  5    |       9 |       1 |                 | 7  5    |       9 |       1 |
+|---------+---------+---------|                 |---------+---------+---------|
+| 4     6 |         | 2       |                 | 4     6 |         | 2       |
+| 5  2  7 | 4       |         |                 | 5  2  7 | 4       |         |
+|         |    2  5 | 6  7  4 |                 |         |    2  5 | 6  7  4 |
++-----------------------------+                 +-----------------------------+
+```
 ### Emergency Backtracking
 These checks are a big help and can solve most humanly solvable sudokus. A lot of time tho, these checks aren't enough!
-In case we see that the checks didn't change anything to the board or to the blacklist, we so an emergency backtracking.
-First we compute the best bet to take. It is a numerical value of every cell and how much changing that cell would affect
-other cells. We want our change to affect a lot of surrounding cells, so we can quickly determine if the bet we took was 
-correct or not and backtrack in case it wasn't. backtracking is not yet done so I can't say more rn.
+In case we see that the checks didn't change anything to the board or to the blacklist, we resort to backtracking.
+First we compute the best bet to take. For this we simply look for the cell with the least amount of possible numbers that
+could be put in it. We then try to solve the board with the first possible number. We still try to only use logic after that.
+The solver always keeps in mind that it has taken a bet and makes sure there are no errors on the board. If there are errors,
+our bet was wrong, so we backtrack. We reset the board and blacklist to their initial state and try with the next possible number.
+If after taking a bet we still can't solve the board with only logic, we take a new bet. We keep track of all our bets in a stack.
+If the top bet only leads to errors, then we know that one of the bottom bets is wrong. If this happens, we pop the top bet from 
+the stack and try with a new number.
