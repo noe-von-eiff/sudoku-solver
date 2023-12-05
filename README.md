@@ -23,7 +23,7 @@ Sudoku" designed by Arto Inkala in 2012. The puzzle is featured and talked about
 [here](https://sudoku2.com/play-the-hardest-sudoku-in-the-world/). This proved quite challenging because the logic
 strategies I implemented simply aren't enough, so I had to add a last resort backtracking algorithm. If logic isn't
 enough, the solver takes a bet on a cell and tries different possible numbers. With the backtracking algorithm
-implemented, the solver solves the Inkala board in about 100ms!
+implemented, the solver solves the Inkala board in about 50ms!
 
 ## Usage
 Here I'll explain the few methods that exist and what they are used for.
