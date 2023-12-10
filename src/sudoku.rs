@@ -171,19 +171,20 @@ impl Sudoku {
                 // println!("Backtracking!");
                 is_backtracking = true;
                 let (bb_row_idx, bb_col_idx) = self.compute_best_bet();
+                // let cell_whitelist: [u8; 9] = self.whitelist_for(bb_row_idx, bb_col_idx);
                 let cell_whitelist: Vec<u8> = self.blacklist[bb_row_idx][bb_col_idx]
                     .iter()
                     .enumerate()
                     .filter(|(_, &r)| r == 0)
                     .map(|(index, _)| (index + 1) as u8)
                     .collect();
-                self.backtrack_stack.push(BacktrackNode {
-                    cell_row_idx: bb_row_idx,
-                    cell_col_idx: bb_col_idx,
-                    possible_numbers: cell_whitelist,
-                    initial_board: self.board.clone(),
-                    initial_blacklist: self.blacklist.clone(),
-                });
+                self.backtrack_stack.push(BacktrackNode::new(
+                    bb_row_idx,
+                    bb_col_idx,
+                    cell_whitelist,
+                    self.board.clone(),
+                    self.blacklist.clone(),
+                ));
                 self.try_new_num(); // Try with the next possible number
             }
         }
@@ -191,23 +192,23 @@ impl Sudoku {
 
     fn try_new_num(&mut self) {
         // Inserts the next possible value on the board. Only use this method when backtracking!
-        let mut current_backtrack_node: BacktrackNode = self.backtrack_stack.pop().unwrap();
-        let num_to_try: u8 = current_backtrack_node.pop_next();
+        let mut node: BacktrackNode = self.backtrack_stack.pop().unwrap();
+        let num_to_try: u8 = node.pop_next();
 
         if num_to_try == 0 { // No more nums in vector, means the num from parent backtrack node is wrong
             self.reset_state(); // Reset to inital board and blacklist state
             self.try_new_num(); // Try with the next possible number
         } else {
-            self.board[current_backtrack_node.cell_row_idx][current_backtrack_node.cell_col_idx] = num_to_try;
-            self.backtrack_stack.push(current_backtrack_node); // Put the node back in our vector
+            self.board[node.row_idx()][node.col_idx()] = num_to_try;
+            self.backtrack_stack.push(node); // Put the node back in our vector
         }
     }
 
     fn reset_state(&mut self) {
         // Resets the board and blacklist to the defined inital state. Only use this method when backtracking!
-        let last_backtrack_node: &BacktrackNode = self.backtrack_stack.last().unwrap();
-        self.board = last_backtrack_node.initial_board.clone(); // Reset to initial board state
-        self.blacklist = last_backtrack_node.initial_blacklist.clone(); // Reset to initial blacklist state
+        let last_node: &BacktrackNode = self.backtrack_stack.last().unwrap();
+        self.board = last_node.board().clone(); // Reset to initial board state
+        self.blacklist = last_node.blacklist().clone(); // Reset to initial blacklist state
     }
 
     fn whitelist_for(&self, row_idx: usize, col_idx: usize) -> [u8; 9] {
