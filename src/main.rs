@@ -43,7 +43,6 @@ fn main() {
     // println!("Start loading Sudokus");
     // let boards: String = fs::read_to_string("all_17_clue_sudokus.txt").expect("Should have been able to read the file");
     // let boards: Vec<&str> = boards.split("\n").collect();
-    // let boards: &[&str] = &boards[1..5000]; // Takes ~21 seconds for first 5k
     // println!("Start solving Sudokus");
     // let start: Instant = Instant::now();
     // let mut sudoku: Sudoku;

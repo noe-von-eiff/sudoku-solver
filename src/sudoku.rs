@@ -95,6 +95,7 @@ impl Sudoku {
 
                     if is_only_possible_num {
                         self.board[row_idx][col_idx] = num;
+                        is_changed = true;
                         continue 'cell_iter; // Can directly go to the next cell since this one is now filled
                     }
 
@@ -113,6 +114,7 @@ impl Sudoku {
 
                     if is_only_possible_num {
                         self.board[row_idx][col_idx] = num;
+                        is_changed = true;
                         continue 'cell_iter; // Can directly go to the next cell since this one is now filled
                     }
 
@@ -135,6 +137,7 @@ impl Sudoku {
 
                     if is_only_possible_num {
                         self.board[row_idx][col_idx] = num;
+                        is_changed = true;
                         continue 'cell_iter; // Can directly go to the next cell since this one is now filled
                     }
                 }
@@ -168,9 +171,7 @@ impl Sudoku {
             // 3. Check if a change occured
             if !is_changed {
                 // Activate backtracking
-                println!("Backtracking!");
-                self.draw();
-                return;
+                // println!("Backtracking!");
                 is_backtracking = true;
                 let (bb_row_idx, bb_col_idx) = self.compute_best_bet();
                 // let cell_whitelist: [u8; 9] = self.whitelist_for(bb_row_idx, bb_col_idx);
