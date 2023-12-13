@@ -10,6 +10,7 @@ pub struct BacktrackNode {
     cell_col_idx: usize,
     // All possible numbers for this cell
     possible_numbers: Vec<u8>,
+    //idx: usize,
     // The state of the board before backtracking
     initial_board: [[u8; 9]; 9],
     // The state of the blacklist before backtracking
@@ -17,7 +18,7 @@ pub struct BacktrackNode {
 }
 
 impl BacktrackNode {
-    pub fn pop_next(&mut self) -> u8 {
+    pub fn next_num(&mut self) -> u8 {
         // Returns the next num from possible_numbers Vector. Returns 0 if Vector is empty.
         // if self.idx > 8 {
         //     return 0;
@@ -25,7 +26,7 @@ impl BacktrackNode {
         // let curr: u8 = self.possible_numbers[self.idx];
         // self.idx += 1;
         // if curr == 0 {
-        //     return self.pop_next();
+        //     return self.next_num();
         // } else {
         //     return curr;
         // }
@@ -41,6 +42,7 @@ impl BacktrackNode {
             cell_row_idx,
             cell_col_idx,
             possible_numbers,
+            //idx: 0,
             initial_board,
             initial_blacklist,
         }

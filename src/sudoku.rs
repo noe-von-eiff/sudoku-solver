@@ -168,7 +168,9 @@ impl Sudoku {
             // 3. Check if a change occured
             if !is_changed {
                 // Activate backtracking
-                // println!("Backtracking!");
+                println!("Backtracking!");
+                self.draw();
+                return;
                 is_backtracking = true;
                 let (bb_row_idx, bb_col_idx) = self.compute_best_bet();
                 // let cell_whitelist: [u8; 9] = self.whitelist_for(bb_row_idx, bb_col_idx);
@@ -193,7 +195,7 @@ impl Sudoku {
     fn try_new_num(&mut self) {
         // Inserts the next possible value on the board. Only use this method when backtracking!
         let mut node: BacktrackNode = self.backtrack_stack.pop().unwrap();
-        let num_to_try: u8 = node.pop_next();
+        let num_to_try: u8 = node.next_num();
 
         if num_to_try == 0 { // No more nums in vector, means the num from parent backtrack node is wrong
             self.reset_state(); // Reset to inital board and blacklist state
