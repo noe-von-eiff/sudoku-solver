@@ -13,9 +13,8 @@ Easy, Medium, Hard and Evil. I copied the first 3 puzzles from each category for
 I also looked into how fast other solvers are online and stumbled upon 
 [this small challenge on StackExchange](https://codegolf.stackexchange.com/questions/190727/the-fastest-sudoku-solver).
 The goal of this challenge is to use an algorithm to solve a given list of 49k 17-clue boards. The official winner of 
-the challenge used Tdoku and got a solving time of 201ms for all the 49k boards! This solver manages to solve one 
-board from that list with an average time of 2ms. The solver isn't able to solve them all yet, due to a memory overflow
-issue I still need to fix.
+the challenge used Tdoku and got a solving time of 201ms for all the 49k boards! This solver takes a whole lot longer:
+240 seconds are needed to solve all 49k boards. There is a lot of work ahead if I want to make this faster!
 
 The hardest challenge I've set for myself is to make the solver be able to solve the "World's most difficult
 Sudoku" designed by Arto Inkala in 2012. The puzzle is featured and talked about
