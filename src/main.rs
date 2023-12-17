@@ -27,7 +27,7 @@ fn main() {
         ("challenge4", "000000071600500000200000000340010000000070620000000500000600300080400000010000000"),
     ]);
 
-    let mut sudoku: Sudoku = Sudoku::from_string(boards.get("challenge4").unwrap());
+    let mut sudoku: Sudoku = Sudoku::from_string(boards.get("inkala").unwrap());
 
     sudoku.draw();
     println!("{}", sudoku.is_solved());
