@@ -173,7 +173,7 @@ In this iteration we do the following checks:
 +-----------------------------+                 +-----------------------------+
 ```
 ### Emergency Backtracking
-These checks are a big help and can solve most humanly solvable sudokus. A lot of time tho, these checks aren't enough!
+These checks are a big help and can solve most humanly solvable sudokus. But these checks may not be enough!
 In case we see that the checks didn't change anything to the board or to the blacklist, we resort to backtracking.
 First we compute the best bet to take. For this we simply look for the cell with the least amount of possible numbers that
 could be put in it. We then try to solve the board with the first possible number. We still try to only use logic after that.

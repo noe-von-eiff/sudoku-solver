@@ -102,7 +102,6 @@ impl Sudoku {
                     // Fill cell with x if all other empty cells in this column have x in their blacklist
                     is_only_possible_num = true; // Reset to true
                     for i in 0..9 { // Iterate through the column
-                        // TODO This is wrong, self.board[row_idx][i] iterates through a row, not a column. Please make correct comments
                         if i != col_idx && self.board[row_idx][i] == 0 { // If we aren't on the current cell and the cell is empty
                             let temp_blacklist: [u8; 9] = self.blacklist[row_idx][i];
                             if !temp_blacklist.contains(&num) {
@@ -171,7 +170,6 @@ impl Sudoku {
             // 3. Check if a change occured
             if !is_changed {
                 // Activate backtracking
-                // println!("Backtracking!");
                 is_backtracking = true;
                 let (bb_row_idx, bb_col_idx) = self.compute_best_bet();
                 // let cell_whitelist: [u8; 9] = self.whitelist_for(bb_row_idx, bb_col_idx);

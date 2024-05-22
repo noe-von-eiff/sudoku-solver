@@ -40,16 +40,16 @@ fn main() {
 
     println!("{}", sudoku.is_solved());
 
-    // println!("Start loading Sudokus");
-    // let boards: String = fs::read_to_string("all_17_clue_sudokus.txt").expect("Should have been able to read the file");
-    // let boards: Vec<&str> = boards.split("\n").collect();
-    // println!("Start solving Sudokus");
-    // let start: Instant = Instant::now();
-    // let mut sudoku: Sudoku;
-    // for board in boards {
-    //     // println!("{:?}", board);
-    //     sudoku = Sudoku::from_string(board);
-    //     sudoku.solve();
-    // }
-    // println!("Time elapsed to solve all boards: {:?}", start.elapsed());
+    // Solve challenge boards
+    println!("Loading challenge Sudoku boards");
+    let boards: String = fs::read_to_string("all_17_clue_sudokus.txt").expect("Should have been able to read the file!");
+    let boards: Vec<&str> = boards.split("\n").collect();
+    println!("Start solving Sudokus");
+    let start: Instant = Instant::now();
+    let mut sudoku: Sudoku;
+    for board in boards {
+        sudoku = Sudoku::from_string(board);
+        sudoku.solve();
+    }
+    println!("Time elapsed to solve all boards: {:?}", start.elapsed());
 }
