@@ -42,11 +42,8 @@ impl Sudoku {
                 }
 
                 // Fill this cells blacklist with numbers that appear in the current column
-                let mut column: [u8; 9] = [0; 9];
-                for j in 0..9 { // Vertical index
-                    column[j] = self.board[j][col_idx];
-                }
-                for num in column {
+                for i in 0..9 {
+                    let num: u8 = self.board[i][col_idx];
                     // If that columns cell is a number and the blacklist entry for this number in this cell is empty...
                     if num != 0 && self.blacklist[row_idx][col_idx][(num - 1) as usize] == 0 {
                         // ...add the num to the blacklist
@@ -58,18 +55,15 @@ impl Sudoku {
                 // Fill this cells blacklist with numbers that appear in the current 3x3 grid
                 let box_row_idx: usize = (row_idx / 3) * 3; // Row index of this 3x3 grids top left cell
                 let box_col_idx: usize = (col_idx / 3) * 3; // Column index of this 3x3 grids top left cell
-                let mut grid: [u8; 9] = [0u8; 9]; // Representation of the 3x3 grid this cell is in
                 for i in 0..3 {
                     for j in 0..3 {
-                        grid[j + 3 * i] = self.board[box_row_idx + i][box_col_idx + j];
-                    }
-                }
-                for num in grid {
-                    // If that 3x3 grids cell isn't empty and the blacklist entry for this number in this cell is empty...
-                    if num != 0 && self.blacklist[row_idx][col_idx][(num - 1) as usize] == 0 {
-                        // ..add the num to the blacklist
-                        self.blacklist[row_idx][col_idx][(num - 1) as usize] = num;
-                        is_changed = true;
+                        let num: u8 = self.board[box_row_idx + i][box_col_idx + j];
+                        // If that 3x3 grids cell isn't empty and the blacklist entry for this number in this cell is empty...
+                        if num != 0 && self.blacklist[row_idx][col_idx][(num - 1) as usize] == 0 {
+                            // ..add the num to the blacklist
+                            self.blacklist[row_idx][col_idx][(num - 1) as usize] = num;
+                            is_changed = true;
+                        }
                     }
                 }
 
@@ -84,13 +78,12 @@ impl Sudoku {
 
                     // Fill cell with x if all other empty cells in this row have x in their blacklist
                     for i in 0..9 { // Iterate through the row
-                        if i != row_idx && self.board[i][col_idx] == 0 { // If we aren't on the current cell and the cell is empty
-                            let temp_blacklist: [u8; 9] = self.blacklist[i][col_idx];
-                            if !temp_blacklist.contains(&num) {
+                        if i != col_idx && self.board[row_idx][i] == 0 { // If we aren't on the current cell and the cell is empty
+                            if !self.blacklist[row_idx][i].contains(&num) {
                                 is_only_possible_num = false;
                                 break;
                             }
-                        }
+                        }   
                     }
 
                     if is_only_possible_num {
@@ -98,13 +91,12 @@ impl Sudoku {
                         is_changed = true;
                         continue 'cell_iter; // Can directly go to the next cell since this one is now filled
                     }
-
+                    
                     // Fill cell with x if all other empty cells in this column have x in their blacklist
                     is_only_possible_num = true; // Reset to true
                     for i in 0..9 { // Iterate through the column
-                        if i != col_idx && self.board[row_idx][i] == 0 { // If we aren't on the current cell and the cell is empty
-                            let temp_blacklist: [u8; 9] = self.blacklist[row_idx][i];
-                            if !temp_blacklist.contains(&num) {
+                        if i != row_idx && self.board[i][col_idx] == 0 { // If we aren't on the current cell and the cell is empty
+                            if !self.blacklist[i][col_idx].contains(&num) {
                                 is_only_possible_num = false;
                                 break;
                             }
